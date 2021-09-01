@@ -30,7 +30,7 @@ class GUI(object):
 		icon = icons + "nva2.ico"
 		self.master.iconbitmap(icon)  # window icon
 		self.master.resizable(width=FALSE, height=FALSE)
-		self.master.geometry("444x490")
+		self.master.geometry("430x465")
 
 		self.last_dir = "C:/"
 		self.input_path = ''
