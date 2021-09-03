@@ -8,7 +8,7 @@ import numpy as np
 import os
 import sys
 import imutils
-#import logging
+import logging
 from time import sleep
 from datetime import datetime
 
@@ -246,9 +246,9 @@ class MotionDetector(object):
 class ReadFoto(object):
 
 	# CONSTRUCTOR --------------------------------------------------------------
-	def __init__(self, path):
+	def __init__(self, log, path):
 		self.img = cv.imread(path)
-#		log.write('info', f'Getting foto {path}')
+		log.write('info', f'Getting foto {path}')
 
 	# PUBLIC METHODS -----------------------------------------------------------
 	def get_foto(self):
@@ -260,76 +260,76 @@ class ReadFoto(object):
 class SaveFoto(object):
 
 	# CONSTRUCTOR --------------------------------------------------------------
-	def __init__(self, path, img):
+	def __init__(self, log, path, img):
 		cv.imwrite(path, img)
-		#log.write('info', f'Foto saved: {path[path.rfind(os.sep):]}')
+		log.write('info', f'Foto saved: {path[path.rfind(os.sep):]}')
 
 
 
 # Log (Model) ==================================================================
-# class Logger(object):
-# 	# CONSTRUCTOR --------------------------------------------------------------
-# 	def __init__(self, name, level, path, num_days_to_keep_logs):
-# 		self.name = name
-# 		self.level = level
-# 		self.path = path
-# 		self.num_days_to_keep_logs = num_days_to_keep_logs
-# 		self.logger = self.__init_logger()
-# 		self.write('info', '-' * 27 + ' PROGRAM STARTED ' + '-' * 27)
-# 		self.write('info', f'Logger.__init__\t\t\t\tLogs path = {self.path}')
+class Logger(object):
+	# CONSTRUCTOR --------------------------------------------------------------
+	def __init__(self, name, level, path, num_days_to_keep_logs):
+		self.name = name
+		self.level = level
+		self.path = path
+		self.num_days_to_keep_logs = num_days_to_keep_logs
+		self.logger = self.__init_logger()
+		self.write('info', '-' * 27 + ' PROGRAM STARTED ' + '-' * 27)
+		self.write('info', f'Logger.__init__\t\t\t\tLogs path = {self.path}')
 
-# 	# PRIVATE METHODS ----------------------------------------------------------
-# 	def __init_logger(self):
-# 		# create logger and set logging level
-# 		logger = logging.getLogger(self.name)
-# 		logger.setLevel(self.level)
+	# PRIVATE METHODS ----------------------------------------------------------
+	def __init_logger(self):
+		# create logger and set logging level
+		logger = logging.getLogger(self.name)
+		logger.setLevel(self.level)
 
-# 		# create file handler and set level
-# 		filename = f'{self.path}{self.name}-{datetime.now().date()}.log'
-# 		handler = logging.FileHandler(filename)
-# 		handler.setLevel(self.level)
+		# create file handler and set level
+		filename = f'{self.path}{self.name}-{datetime.now().date()}.log'
+		handler = logging.FileHandler(filename)
+		handler.setLevel(self.level)
 
-# 		# create formatter and add it to handler
-# 		log_format = '%(asctime)s\t\t%(levelname)s\t\t%(message)s'
-# 		log_formatter = logging.Formatter(log_format)
-# 		handler.setFormatter(log_formatter)
+		# create formatter and add it to handler
+		log_format = '%(asctime)s\t\t%(levelname)s\t\t%(message)s'
+		log_formatter = logging.Formatter(log_format)
+		handler.setFormatter(log_formatter)
 
-# 		# add file handler to logger
-# 		logger.addHandler(handler)
+		# add file handler to logger
+		logger.addHandler(handler)
 
-# 		return logger
+		return logger
 	
-# 	# PUBLIC METHODS -----------------------------------------------------------
-# 	def write(self, level, message):
-# 		if level == 'critical':
-# 			self.logger.critical(message)
-# 		elif level == 'error':
-# 			self.logger.error(message)
-# 		elif level == 'warning':
-# 			self.logger.warning(message)
-# 		elif level == 'info':
-# 			self.logger.info(message)
-# 		else:
-# 			self.logger.debug(message)
+	# PUBLIC METHODS -----------------------------------------------------------
+	def write(self, level, message):
+		if level == 'critical':
+			self.logger.critical(message)
+		elif level == 'error':
+			self.logger.error(message)
+		elif level == 'warning':
+			self.logger.warning(message)
+		elif level == 'info':
+			self.logger.info(message)
+		else:
+			self.logger.debug(message)
 
-# 	def del_old(self):
-# 		date_today = datetime.now().date()
-# 		have_deleted_logs = False
-# 		for log in os.listdir(self.path):
-# 			log_date = datetime.fromisoformat(log[-14:-4]).date()
-# 			diff = date_today - log_date
-# 			if diff.days > self.num_days_to_keep_logs:
-# 				try:
-# 					os.remove(f'{self.path}{os.sep}{log}')
-# 					have_deleted_logs = True
-# 					message = 'Logger.del_old\t\t\t\ttDeleted old logs'
-# 					self.write('info', message)
-# 				except Exception as e:
-# 					message = 'Logger.del_old\t\t\t\tFailed to delete old logs\t' + str(e)
-# 					self.write('warning', message)
-# 		if not have_deleted_logs:
-# 			message = 'Logger.del_old\t\t\t\tNo old logs to delete'
-# 			self.write('info', message)
+	def del_old(self):
+		date_today = datetime.now().date()
+		have_deleted_logs = False
+		for log in os.listdir(self.path):
+			log_date = datetime.fromisoformat(log[-14:-4]).date()
+			diff = date_today - log_date
+			if diff.days > self.num_days_to_keep_logs:
+				try:
+					os.remove(f'{self.path}{os.sep}{log}')
+					have_deleted_logs = True
+					message = 'Logger.del_old\t\t\t\ttDeleted old logs'
+					self.write('info', message)
+				except Exception as e:
+					message = 'Logger.del_old\t\t\t\tFailed to delete old logs\t' + str(e)
+					self.write('warning', message)
+		if not have_deleted_logs:
+			message = 'Logger.del_old\t\t\t\tNo old logs to delete'
+			self.write('info', message)
 
 
 
@@ -342,23 +342,23 @@ class Controller(object):
 		self.output_folder = output_folder
 		self.threshold = threshold
 
-		# if sys.path[0] == '':
-		# 	log_path = f'{sys.path[1]}{os.sep}logs{os.sep}'
-		# else:
-		# 	log_path = f'{sys.path[0]}{os.sep}logs{os.sep}'
+		if sys.path[0] == '':
+			log_path = f'{sys.path[1]}{os.sep}logs{os.sep}'
+		else:
+			log_path = f'{sys.path[0]}{os.sep}logs{os.sep}'
 
-		# self.log = Logger('MotionDetector', logging.DEBUG, log_path, 30)
-		# self.log.del_old()
+		self.log = Logger('MotionDetector', logging.DEBUG, log_path, 30)
+		self.log.del_old()
 
 	# PRIVATE METHODS ----------------------------------------------------------
 	def __get_input_fotos(self):
 		input_imgs = os.listdir(self.input_folder)  # list of strs
 
 		if input_imgs == []:
-			#self.log.write('error', 'The input folder is empty')
+			self.log.write('error', 'The input folder is empty')
 			return  # Terminar o Controller e voltar para a GUI ou Console
 		else:
-			#self.log.write('info', 'Start reading input fotos')
+			self.log.write('info', 'Start reading input fotos')
 			return input_imgs
 
 	# PUBLIC METHODS -----------------------------------------------------------
@@ -369,11 +369,11 @@ class Controller(object):
 		num_fotos_with_motion_detected = 0
 		
 		for i in range(len(input_imgs) - 1):
-			img0 = ReadFoto(f'{self.input_folder}{os.sep}{input_imgs[i]}').get_foto()
-			img1 = ReadFoto(f'{self.input_folder}{os.sep}{input_imgs[i + 1]}').get_foto()
+			img0 = ReadFoto(self.log, f'{self.input_folder}{os.sep}{input_imgs[i]}').get_foto()
+			img1 = ReadFoto(self.log, f'{self.input_folder}{os.sep}{input_imgs[i + 1]}').get_foto()
 
 			if MotionDetector(img0, img1, self.threshold).is_motion_detected():
-				SaveFoto(f'{self.output_folder}{os.sep}{input_imgs[i + 1]}', img1)
+				SaveFoto(self.log, f'{self.output_folder}{os.sep}{input_imgs[i + 1]}', img1)
 				num_fotos_with_motion_detected += 1
 
 		return num_fotos_with_motion_detected
@@ -382,11 +382,11 @@ class Controller(object):
 
 # INITIALIZATION ===============================================================
 if __name__ == '__main__':
-	# if sys.path[0] == '':
-	# 	log_path = f'{sys.path[1]}{os.sep}logs{os.sep}'
-	# else:
-	# 	log_path = f'{sys.path[0]}{os.sep}logs{os.sep}'
+	if sys.path[0] == '':
+		log_path = f'{sys.path[1]}{os.sep}logs{os.sep}'
+	else:
+		log_path = f'{sys.path[0]}{os.sep}logs{os.sep}'
 	
-	# Logger('MotionDetector', logging.DEBUG, log_path, 30)
+	Logger('MotionDetector', logging.DEBUG, log_path, 30)
 	
 	GUI()
