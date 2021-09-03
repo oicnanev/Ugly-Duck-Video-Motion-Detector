@@ -3,9 +3,11 @@ from tkinter import HORIZONTAL, BOTTOM, FALSE, W, EW, Tk, Frame, Label, Button, 
 
 from PIL import ImageTk, Image
 import cv2 as cv
+import numpy as np
 
 import os
 import sys
+import imutils
 import logging
 from time import sleep
 from datetime import datetime
@@ -138,10 +140,10 @@ class GUI(object):
 
 	def __callback_4(self):  # "Detect movment" button handler ---------------
 		"""
-	 	None -> None
+		None -> None
 
-	 	Calls the function self.__detect()
-	 	"""
+		Calls the function self.__detect()
+		"""
 		sleep(1)
 		msg = 'Choose the threshold and clic Detect  Threshold = ' + str(self.threshold.get())
 		if self.message.get() != msg:
@@ -159,8 +161,11 @@ class GUI(object):
 
 		Calls the check_motion() method from the Controller() class
 		"""
-		ctrl = Controller(self.input_path.get(), self.output_path.get(), self.threshold.get())
+		ctrl = Controller(self.input_path, self.output_path, self.threshold)
 		num_fotos_with_motion_detected = ctrl.check_motion()
+
+		if num_fotos_with_motion_detected > 0:
+			self.message.set(f"Done. {num_fotos_with_motion_detected} fotos with motion detected")
 		
 
 
@@ -200,28 +205,40 @@ class MotionDetector(object):
 		self.threshold = threshold
 
 	# PRIVATE METHODS ----------------------------------------------------------
-	def __get_binarazed_bgr(self, img):
-		imgB = cv.split(img[0])
-		imgG = cv.split(img[1])
-		imgR = cv.split(img[2])
+	def __greying(self, img):
+		# recize the image, convert it to grayscale
+		img = imutils.resize(img, width=500)
+		gray = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
 
-		(T, imgBinB) = cv2.threshold(imgB, 125, 255, cv2.THRESH_BINARY)
-		(T, imgBinG) = cv2.threshold(imgG, 125, 255, cv2.THRESH_BINARY)
-		(T, imgBinR) = cv2.threshold(imgR, 125, 255, cv2.THRESH_BINARY)
+		return gray
 
-		imgBinBG = cv.add(imgBinB, imgBinG)
-		imgBinBGR = cv.add(imgBinBG, imgBinR)
-
-		return imgBinBGR
 
 	# PUBLIC METHODS -----------------------------------------------------------
 	def is_motion_detected(self):
-		bin_img0 = __get_binarazed_bgr(self.img0)
-		bin_img1 = __get_binarazed_bgr(self.img1)
+		gray0 = self.__greying(self.img0)
+		gray1 = self.__greying(self.img1)
 
-		variation = bin_img1 - bin_img1
+		# compute the absolute difference between two images
+		img_delta = cv.absdiff(gray0, gray1)
+		thresh = cv.threshold(img_delta, 25, 255, cv.THRESH_BINARY)[1]
+		
+		# dilate the thresholded image to fill in holes, then find contours
+		# on thresholded image
+		thresh = cv.dilate(thresh, None, iterations=2)
+		cnts = cv.findContours(thresh.copy(), cv.RETR_EXTERNAL,
+			cv.CHAIN_APPROX_SIMPLE)
+		cnts = imutils.grab_contours(cnts)
+		
 
-		return variation.sum() > self.threshold
+		# loop over the contours
+		for c in cnts:
+			# if the contour is too small, ignore it
+			if cv.contourArea(c) < (self.threshold.get() * 10):
+				continue
+			else:
+				return True
+
+		return False
 
 
 
@@ -230,7 +247,7 @@ class ReadFoto(object):
 
 	# CONSTRUCTOR --------------------------------------------------------------
 	def __init__(self, log, path):
-		self.img = cv2.imread(path)
+		self.img = cv.imread(path)
 		log.write('info', f'Getting foto {path}')
 
 	# PUBLIC METHODS -----------------------------------------------------------
@@ -244,7 +261,7 @@ class SaveFoto(object):
 
 	# CONSTRUCTOR --------------------------------------------------------------
 	def __init__(self, log, path, img):
-		cv2.imwrite(path, img)
+		cv.imwrite(path, img)
 		log.write('info', f'Foto saved: {path[path.rfind(os.sep):]}')
 
 
@@ -352,8 +369,8 @@ class Controller(object):
 		num_fotos_with_motion_detected = 0
 		
 		for i in range(len(input_imgs) - 1):
-			img0 = ReadFoto(self.log, f'{input_folder}{os.sep}{input_imgs[i]}').get_foto()
-			img1 = ReadFoto(self.log, f'{input_folder}{os.sep}{input_imgs[i + 1]}').get_foto()
+			img0 = ReadFoto(self.log, f'{self.input_folder}{os.sep}{input_imgs[i]}').get_foto()
+			img1 = ReadFoto(self.log, f'{self.input_folder}{os.sep}{input_imgs[i + 1]}').get_foto()
 
 			if MotionDetector(img0, img1, self.threshold).is_motion_detected():
 				SaveFoto(self.log, f'{self.output_folder}{os.sep}{input_imgs[i + 1]}', img1)
@@ -365,4 +382,11 @@ class Controller(object):
 
 # INITIALIZATION ===============================================================
 if __name__ == '__main__':
+	if sys.path[0] == '':
+		log_path = f'{sys.path[1]}{os.sep}logs{os.sep}'
+	else:
+		log_path = f'{sys.path[0]}{os.sep}logs{os.sep}'
+	
+	Logger('MotionDetector', logging.DEBUG, log_path, 30)
+	
 	GUI()
