@@ -233,11 +233,15 @@ class MotionDetector(object):
 		# loop over the contours
 		for c in cnts:
 			# if the contour is too small, ignore it
-			if cv.contourArea(c) < (self.threshold.get() * 10):
+			if cv.contourArea(c) < (self.threshold.get() * 100):
+				print(f'delta: {sum(sum(img_delta))}, area contorno: {cv.contourArea(c)}, threshold escolhido: {self.threshold.get() * 100}')
 				continue
 			else:
+				print(f'delta: {sum(sum(img_delta))}, area contorno: {cv.contourArea(c)}, threshold escolhido: {self.threshold.get() * 100}')
+				print('CHOSEN!!!! ---------------------------------------------------------\n')
 				return True
 
+		
 		return False
 
 
@@ -374,8 +378,10 @@ class Controller(object):
 
 			if MotionDetector(img0, img1, self.threshold).is_motion_detected():
 				SaveFoto(f'{self.output_folder}{os.sep}{input_imgs[i + 1]}', img1)
+				print(f'{self.output_folder}{os.sep}{input_imgs[i + 1]}')
 				num_fotos_with_motion_detected += 1
 
+		print(f'num fotos detected: {num_fotos_with_motion_detected}')
 		return num_fotos_with_motion_detected
 
 
