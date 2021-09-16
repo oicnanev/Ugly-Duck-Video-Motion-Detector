@@ -1,4 +1,53 @@
-from tkinter import HORIZONTAL, BOTTOM, FALSE, W, EW, Tk, Frame, Label, Button, \
+"""
+@python version:
+	Python 3.7.1
+
+@plattform:
+	Windows
+
+@summary:
+	App designed with the pattern Model-View-Controller (MVC)
+	https://pt.wikipedia.org/wiki/MVC
+
+	The goal is to detect motion in a sequence of static images. This is 
+	acomplished by comparing two in a row, first resizing them to 500 pixels 
+	of width, then greying them, after that, create a new image with the absolut
+	difference of between the images. At last, with this new image use a dilated
+	binary threshold and find the countours. If the area of any countour is 
+	bigger than the threshold chosed in the GUI, there is motion 
+
+	Model is composed by MotionDetector, ReadFoto and SaveFoto Classes
+	View is composed by a Graphical User Interface (GUI), GUI class and a 
+	commented Command Line Interface (CLI), Console script
+	Controller is composed by the Controller class who connects Model and View
+
+@author:
+	Venâncio 2000644
+
+@contact:
+	venancio.nmm@gnr.pt
+
+@organization:
+	SDATO - DP - UAF - GNR
+
+@version:
+	1.0.0 (2021-09-03):
+	- Creation of the MVC model with classes:
+		GUI (view)
+		MotionDetector (model)
+		ReadFoto (model)
+		SaveFoto (model)
+		Controller (controller)
+
+@TODO:
+	Show the first foto to the user so he can choose an area in witch the app
+	finds motion 
+
+@since:
+	2021-09-03
+"""
+
+from tkinter import HORIZONTAL, BOTTOM, FALSE, W, EW, Tk, Frame, Label, Button,\
 	Message, StringVar, IntVar,filedialog, ttk, Scale, VERTICAL
 
 from PIL import ImageTk, Image
@@ -8,7 +57,6 @@ import numpy as np
 import os
 import sys
 import imutils
-#import logging
 from time import sleep
 from datetime import datetime
 
@@ -180,8 +228,8 @@ class GUI(object):
 #     while os.listdir(input_folder) == []:
 #     	input_folder = input("Write the full path of foto's folder (press 'ENTER' at the end):\n")
 
-#     output_folder = ['some shit', 'another shit']
-#     while os.listdir(output_folder) != []:
+#     output_folder = []
+#     while os.listdir(output_folder) == []:
 #     	output_folder = input("Write the full path of an output empty folder (press 'ENTER' at the end):\n")
 	
 #     threshold = None
@@ -234,11 +282,8 @@ class MotionDetector(object):
 		for c in cnts:
 			# if the contour is too small, ignore it
 			if cv.contourArea(c) < (self.threshold.get() * 100):
-				print(f'delta: {sum(sum(img_delta))}, area contorno: {cv.contourArea(c)}, threshold escolhido: {self.threshold.get() * 100}')
 				continue
 			else:
-				print(f'delta: {sum(sum(img_delta))}, area contorno: {cv.contourArea(c)}, threshold escolhido: {self.threshold.get() * 100}')
-				print('CHOSEN!!!! ---------------------------------------------------------\n')
 				return True
 
 		
@@ -252,7 +297,6 @@ class ReadFoto(object):
 	# CONSTRUCTOR --------------------------------------------------------------
 	def __init__(self, path):
 		self.img = cv.imread(path)
-#		log.write('info', f'Getting foto {path}')
 
 	# PUBLIC METHODS -----------------------------------------------------------
 	def get_foto(self):
@@ -266,75 +310,6 @@ class SaveFoto(object):
 	# CONSTRUCTOR --------------------------------------------------------------
 	def __init__(self, path, img):
 		cv.imwrite(path, img)
-		#log.write('info', f'Foto saved: {path[path.rfind(os.sep):]}')
-
-
-
-# Log (Model) ==================================================================
-# class Logger(object):
-# 	# CONSTRUCTOR --------------------------------------------------------------
-# 	def __init__(self, name, level, path, num_days_to_keep_logs):
-# 		self.name = name
-# 		self.level = level
-# 		self.path = path
-# 		self.num_days_to_keep_logs = num_days_to_keep_logs
-# 		self.logger = self.__init_logger()
-# 		self.write('info', '-' * 27 + ' PROGRAM STARTED ' + '-' * 27)
-# 		self.write('info', f'Logger.__init__\t\t\t\tLogs path = {self.path}')
-
-# 	# PRIVATE METHODS ----------------------------------------------------------
-# 	def __init_logger(self):
-# 		# create logger and set logging level
-# 		logger = logging.getLogger(self.name)
-# 		logger.setLevel(self.level)
-
-# 		# create file handler and set level
-# 		filename = f'{self.path}{self.name}-{datetime.now().date()}.log'
-# 		handler = logging.FileHandler(filename)
-# 		handler.setLevel(self.level)
-
-# 		# create formatter and add it to handler
-# 		log_format = '%(asctime)s\t\t%(levelname)s\t\t%(message)s'
-# 		log_formatter = logging.Formatter(log_format)
-# 		handler.setFormatter(log_formatter)
-
-# 		# add file handler to logger
-# 		logger.addHandler(handler)
-
-# 		return logger
-	
-# 	# PUBLIC METHODS -----------------------------------------------------------
-# 	def write(self, level, message):
-# 		if level == 'critical':
-# 			self.logger.critical(message)
-# 		elif level == 'error':
-# 			self.logger.error(message)
-# 		elif level == 'warning':
-# 			self.logger.warning(message)
-# 		elif level == 'info':
-# 			self.logger.info(message)
-# 		else:
-# 			self.logger.debug(message)
-
-# 	def del_old(self):
-# 		date_today = datetime.now().date()
-# 		have_deleted_logs = False
-# 		for log in os.listdir(self.path):
-# 			log_date = datetime.fromisoformat(log[-14:-4]).date()
-# 			diff = date_today - log_date
-# 			if diff.days > self.num_days_to_keep_logs:
-# 				try:
-# 					os.remove(f'{self.path}{os.sep}{log}')
-# 					have_deleted_logs = True
-# 					message = 'Logger.del_old\t\t\t\ttDeleted old logs'
-# 					self.write('info', message)
-# 				except Exception as e:
-# 					message = 'Logger.del_old\t\t\t\tFailed to delete old logs\t' + str(e)
-# 					self.write('warning', message)
-# 		if not have_deleted_logs:
-# 			message = 'Logger.del_old\t\t\t\tNo old logs to delete'
-# 			self.write('info', message)
-
 
 
 # Controller (Controler) =======================================================
@@ -346,24 +321,14 @@ class Controller(object):
 		self.output_folder = output_folder
 		self.threshold = threshold
 
-		# if sys.path[0] == '':
-		# 	log_path = f'{sys.path[1]}{os.sep}logs{os.sep}'
-		# else:
-		# 	log_path = f'{sys.path[0]}{os.sep}logs{os.sep}'
-
-		# self.log = Logger('MotionDetector', logging.DEBUG, log_path, 30)
-		# self.log.del_old()
-
 	# PRIVATE METHODS ----------------------------------------------------------
 	def __get_input_fotos(self):
 		input_imgs = os.listdir(self.input_folder)  # list of strs
 
 		if input_imgs == []:
-			#self.log.write('error', 'The input folder is empty')
 			return  # Terminar o Controller e voltar para a GUI ou Console
-		else:
-			#self.log.write('info', 'Start reading input fotos')
-			return input_imgs
+
+		return input_imgs
 
 	# PUBLIC METHODS -----------------------------------------------------------
 	def check_motion(self):
@@ -387,12 +352,5 @@ class Controller(object):
 
 
 # INITIALIZATION ===============================================================
-if __name__ == '__main__':
-	# if sys.path[0] == '':
-	# 	log_path = f'{sys.path[1]}{os.sep}logs{os.sep}'
-	# else:
-	# 	log_path = f'{sys.path[0]}{os.sep}logs{os.sep}'
-	
-	# Logger('MotionDetector', logging.DEBUG, log_path, 30)
-	
+if __name__ == '__main__':	
 	GUI()
