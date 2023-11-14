@@ -43,4 +43,4 @@ $ pip3 install -r requirements.txt
 After chosen the input video file, it will open the first frame to choose the area to do motion detection.
 
 ### License ###
-
+[GNU GENERAL PUBLIC LICENSE Version 3](LICENSE)
