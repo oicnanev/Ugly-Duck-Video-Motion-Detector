@@ -39,10 +39,6 @@
         SaveFoto (model)
         Controller (controller)
 
-@TODO:
-    Show the first foto to the user so he can choose an area in witch the app
-    finds motion 
-
 @since:
     2021-09-03
 """
@@ -75,12 +71,16 @@ class GUI(object):
         self.master.title('Ugly Duck Motion Detector - 1.0.0')  # window name
         icons = os.getcwd() + os.sep + "icons" + os.sep  # path to icons
         icon = icons + "nva2.ico"
-        self.master.iconbitmap(icon)  # window icon
-        self.master.resizable(width=FALSE, height=FALSE)
-        self.master.geometry("430x465")
+        if os.name == 'nt':
+            self.master.iconbitmap(icon)  # window icon
+            self.master.resizable(width=FALSE, height=FALSE)
+            self.master.geometry("430x465")
         self.screen_size = (self.master.winfo_screenwidth(), self.master.winfo_screenheight())
 
-        self.last_dir = "C:/"
+        if os.name == 'nt':
+            self.last_dir = "C:/"
+        else:
+            self.last_dir = os.sep + 'home' + os.sep
         self.input_path = ''
         self.output_path = ''
 
@@ -133,7 +133,10 @@ class GUI(object):
         # Progressbar --------------------------------------------------
         self.s = ttk.Style()
         # themes: winnative, clam, alt, default, classic, vista, xpnative
-        self.s.theme_use('winnative')
+        if os.name == 'nt':
+            self.s.theme_use('winnative')
+        else:
+            self.s.theme_use('default')
         self.s.configure("red.Horizontal.TProgressbar", foreground='green', background='forest green')
         self.pb = ttk.Progressbar(self.f, orient='horizontal', mode='determinate',
                                   style="red.Horizontal.TProgressbar")
